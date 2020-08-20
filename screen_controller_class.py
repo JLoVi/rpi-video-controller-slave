@@ -17,6 +17,7 @@ class ScreenController:
 	currentIndex = None
 	nextIndex = None
 	layer = 10
+	baseUrl = "http://10.0.0.111:8080/video/"
 	
 	def __init__(self):
 	#	self.video_playlist = [VideoFile(1, "/media/pi/TOSHIBA1/Apocalyptic.mp4"), VideoFile(2, "/media/pi/TOSHIBA1/ledtime.mp4"), VideoFile(3, "/media/pi/TOSHIBA1/DiscoLightsVidevo.mov")]
@@ -26,22 +27,23 @@ class ScreenController:
 		self.player_log = logging.getLogger("Player")
 		
 	def setup_player_one(self):
-		self.player1 = OMXPlayer(self.video_playlist[self.index].path, args='--win 0,0,1920,1080 --layer 2', dbus_name='orb.mpris.MediaPlayer2.omxplayer1', pause = True)
+		self.player1 = OMXPlayer(self.baseUrl + self.video_playlist[self.currentIndex], args='--win 0,0,1920,1080 --layer 2', dbus_name='orb.mpris.MediaPlayer2.omxplayer1', pause = True)
 		self.player1.playEvent += lambda _: self.player_log.info(" 1 Play")
 		self.player1.pauseEvent += lambda _: self.player_log.info("1 Pause")
 		self.player1.stopEvent += lambda _: self.player_log.info("1 Stop")
 		
 	def setup_player_two(self):
-		self.player2 = OMXPlayer(self.video_playlist[self.index + 1].path,  args='--win 0,0,1920,1080 --layer 1', dbus_name='orb.mpris.MediaPlayer2.omxplayer2', pause = True)
+		self.player2 = OMXPlayer(self.baseUrl + self.video_playlist[self.currentIndex + 1],  args='--win 0,0,1920,1080 --layer 1', dbus_name='orb.mpris.MediaPlayer2.omxplayer2', pause = True)
 		self.player2.playEvent += lambda _: self.player_log.info(" 2 Play")
 		self.player2.pauseEvent += lambda _: self.player_log.info("2 Pause")
 		self.player2.stopEvent += lambda _: self.player_log.info("2 Stop")
 	
-	def start_playlist(self, ids):
-		self.layer = len(ids) + 1
-		videos = json.load(open('videos.json', 'r'))
-		for x in ids:
-			self.video_playlist.append(VideoFile(x, videos[x]))
+	def start_playlist(self, videos):
+		self.layer = len(videos) + 1
+		videos.sort(reverse=False, key=self.sort_videos)
+		for x in videos:
+			self.video_playlist.append(x['id'])
+		
 		self.setup_player_one();
 		self.setup_player_two();
 		self.play_videos(True);
@@ -58,12 +60,13 @@ class ScreenController:
 		# Load players with appropiate indexes	
 		#self.player1.load(self.video_playlist[self.currentIndex].path, True)
 		#self.player2.load(self.video_playlist[self.nextIndex].path, True)
-		#self.player1.set_alpha(255)
-		#self.player2.set_alpha(255)
+		self.player1.set_alpha(255)
+		self.player2.set_alpha(255)
 		# Play for total duration - 1 second	
 		#self.player1.play()
-		self.player1.load(self.video_playlist[self.currentIndex].path, False)
-		sleep(self.player1.duration())
+		self.player1.load(self.baseUrl + self.video_playlist[self.currentIndex], False)
+		sleep(self.player1.duration() - 2)
+		self.player2.load(self.baseUrl + self.video_playlist[self.currentIndex + 1], False)
 		self.player1.quit()
 		
 		# Fade player 
@@ -72,9 +75,8 @@ class ScreenController:
 		
 		# Play for total duration - 1 second	
 		#self.player2.play()
-		self.player2.load(self.video_playlist[self.nextIndex].path, False)
 		print("second video started")
-		sleep(self.player2.duration())
+		sleep(self.player2.duration() - 2)
 		self.player2.quit()
 		
 		# Fade player
@@ -119,6 +121,9 @@ class ScreenController:
 	def get_remaining_seconds(self, player):
 		remaining_seconds = player.duration() - player.position()
 		return remaining_seconds
+	
+	def sort_videos(self, video):
+		return video['order']
              
 	def is_nearly_finished(self, player):
 		amountPlayed = 0
