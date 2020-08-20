@@ -18,9 +18,12 @@ class ScreenController:
 	nextIndex = None
 	layer = 10
 	baseUrl = "http://10.0.0.111:8080/video/"
+	fadeTime = 2
+	fadeStep = 5
+	lowerAlpha = 50
+	upperAlpha = 250
 	
 	def __init__(self):
-	#	self.video_playlist = [VideoFile(1, "/media/pi/TOSHIBA1/Apocalyptic.mp4"), VideoFile(2, "/media/pi/TOSHIBA1/ledtime.mp4"), VideoFile(3, "/media/pi/TOSHIBA1/DiscoLightsVidevo.mov")]
 		self.index = 0
 		self.currentIndex = 0
 		self.nextIndex = self.currentIndex+1
@@ -33,7 +36,7 @@ class ScreenController:
 		self.player1.stopEvent += lambda _: self.player_log.info("1 Stop")
 		
 	def setup_player_two(self):
-		self.player2 = OMXPlayer(self.baseUrl + self.video_playlist[self.currentIndex + 1],  args='--win 0,0,1920,1080 --layer 1', dbus_name='orb.mpris.MediaPlayer2.omxplayer2', pause = True)
+		self.player2 = OMXPlayer(self.baseUrl + self.video_playlist[self.nextIndex],  args='--win 0,0,1920,1080 --layer 1', dbus_name='orb.mpris.MediaPlayer2.omxplayer2', pause = True)
 		self.player2.playEvent += lambda _: self.player_log.info(" 2 Play")
 		self.player2.pauseEvent += lambda _: self.player_log.info("2 Pause")
 		self.player2.stopEvent += lambda _: self.player_log.info("2 Stop")
@@ -43,7 +46,7 @@ class ScreenController:
 		videos.sort(reverse=False, key=self.sort_videos)
 		for x in videos:
 			self.video_playlist.append(x['id'])
-		
+		print(self.video_playlist)
 		self.setup_player_one();
 		self.setup_player_two();
 		self.play_videos(True);
@@ -58,29 +61,39 @@ class ScreenController:
 	
 	def play_videos(self, init = False):
 		# Load players with appropiate indexes	
-		#self.player1.load(self.video_playlist[self.currentIndex].path, True)
-		#self.player2.load(self.video_playlist[self.nextIndex].path, True)
+		if init == False: 
+			self.player1.load(self.video_playlist[self.currentIndex], pause = True)
+			self.player2.load(self.video_playlist[self.nextIndex], pause = True)
+		
 		self.player1.set_alpha(255)
 		self.player2.set_alpha(255)
-		# Play for total duration - 1 second	
-		#self.player1.play()
-		self.player1.load(self.baseUrl + self.video_playlist[self.currentIndex], False)
-		sleep(self.player1.duration() - 2)
-		self.player2.load(self.baseUrl + self.video_playlist[self.currentIndex + 1], False)
-		self.player1.quit()
 		
-		# Fade player 
-		#self.fade_player_out(self.player1)
+		# Play video on player one
+		self.player1.play()
+		print("first video started")
+		self.fade_player_in(self.player1)
+		
+		
+		# Sleep for video duration - 2 * self.fadeTime seconds because there are two following fades which sleep for fadeTime seconds each
+		sleep(self.player1.duration() - (2 * self.fadeTime))
+		self.player2.play()
+		print("second video started")
+		#  Start fading player one out and player two in for fadeTime seconds each
+		self.fade_player_out(self.player1)
+		self.fade_player_in(self.player2)
+		
+		# Stop Video One
+		self.player1.quit()
 		print("first video finished")
 		
 		# Play for total duration - 1 second	
-		#self.player2.play()
-		print("second video started")
-		sleep(self.player2.duration() - 2)
-		self.player2.quit()
+		
+		
+		sleep(self.player2.duration() - self.fadeTime)
 		
 		# Fade player
-		# self.fade_player_out(self.player2)
+		self.fade_player_out(self.player2)
+		self.player2.quit()
 		
 		# Set new current and next index 
 		self.reset_indexes()
@@ -92,8 +105,7 @@ class ScreenController:
 				#self.layer = self.layer - 2
 			self.play_videos(False)
 		
-	def reset_indexes(self): 
-
+	def reset_indexes(self):
 		if self.nextIndex + 1 >= len(self.video_playlist):
 			self.currentIndex = 0
 		else :
@@ -104,19 +116,29 @@ class ScreenController:
 		else:
 			self.nextIndex = self.currentIndex + 1
 		
-		print('AFTER CURRENT')
+		print('----AFTER CURRENT----')
 		print(self.currentIndex)
-		print('AFTER NEXT')
+		print('----AFTER NEXT----')
 		print(self.nextIndex)
 		
 	def fade_player_out(self, player):
-		alpha = 200
-		for x in range(6):
-			sleep(0.1)
-			alpha = alpha - 20
+		alpha = self.upperAlpha 
+		no_of_steps = (self.upperAlpha - self.lowerAlpha)/self.fadeTime
+		fadeSleep = self.fadeTime/no_of_steps
+		for x in range(no_of_steps):
+			sleep(fadeSleep)
+			alpha = alpha - ((self.upperAlpha - self.lowerAlpha)/no_of_steps)
 			player.set_alpha(alpha)
 			
-		alpha = 200
+	def fade_player_in(self, player):
+		alpha = self.lowerAlpha 
+		no_of_steps = (self.upperAlpha - self.lowerAlpha)/self.fadeTime
+		fadeSleep = self.fadeTime/no_of_steps
+		for x in range(no_of_steps):
+			sleep(fadeSleep)
+			alpha = alpha + ((self.upperAlpha - self.lowerAlpha)/no_of_steps)
+			player.set_alpha(alpha)
+
 	
 	def get_remaining_seconds(self, player):
 		remaining_seconds = player.duration() - player.position()
