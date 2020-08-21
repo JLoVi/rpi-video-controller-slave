@@ -61,12 +61,16 @@ class ScreenController:
 		self.player1.quit()
 	
 	def play_single_video(self, video_id):
-		videos = json.load(open('videos.json', 'r'))
-		video = next((item for item in videos if item["id"] == video_id), None)
+		# videos = json.load(open('videos.json', 'r'))
+		# video = next((item for item in videos if item["id"] == video_id), None)
 		url = self.baseUrl + video_id
-		self.player1 = OMXPlayer(url, args='--win 0,0,1920,1080', dbus_name='orb.mpris.MediaPlayer2.omxplayer1')
+		# check if player is already playing
+		# if it is playing then fade out player 1 
+		# start player 2 with new video fading in
+		# quit player 1
+		# do the same for player 2
+		self.player1 = OMXPlayer(url, args='--win 0,0,1920,1080 --layer 2', dbus_name='orb.mpris.MediaPlayer2.omxplayer1')
 		print('PLAYING SINGLE VIDEO')
-		print(video)
 	
 	def play_videos(self, init = False):
 		# Load players with appropiate indexes	
