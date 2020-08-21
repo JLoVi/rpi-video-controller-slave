@@ -34,6 +34,7 @@ class ScreenController:
 		self.player1.playEvent += lambda _: self.player_log.info(" 1 Play")
 		self.player1.pauseEvent += lambda _: self.player_log.info("1 Pause")
 		self.player1.stopEvent += lambda _: self.player_log.info("1 Stop")
+		print('----setup_player_one END----')
 		
 	def setup_player_two(self):
 		self.player2 = OMXPlayer(self.baseUrl + self.video_playlist[self.nextIndex],  args='--win 0,0,1920,1080 --layer 1', dbus_name='orb.mpris.MediaPlayer2.omxplayer2', pause = True)
@@ -62,17 +63,17 @@ class ScreenController:
 	def play_videos(self, init = False):
 		# Load players with appropiate indexes	
 		if init == False: 
-			self.player1.load(self.video_playlist[self.currentIndex], pause = True)
-			self.player2.load(self.video_playlist[self.nextIndex], pause = True)
-		
-		self.player1.set_alpha(255)
-		self.player2.set_alpha(255)
+			print ("VIDEO INIT")
+			self.player1.load(self.baseUrl + self.video_playlist[self.currentIndex], pause = True)
+			self.player2.load(self.baseUrl + self.video_playlist[self.nextIndex], pause = True)
+	#	else:
+		#	self.player1.set_alpha(255)
+		#	self.player2.set_alpha(255)
 		
 		# Play video on player one
 		self.player1.play()
 		print("first video started")
-		self.fade_player_in(self.player1)
-		
+		#self.fade_player_in(self.player1)
 		
 		# Sleep for video duration - 2 * self.fadeTime seconds because there are two following fades which sleep for fadeTime seconds each
 		sleep(self.player1.duration() - (2 * self.fadeTime))
@@ -83,16 +84,15 @@ class ScreenController:
 		self.fade_player_in(self.player2)
 		
 		# Stop Video One
+		print("first video quit start")
 		self.player1.quit()
-		print("first video finished")
+		print("first video quit finished")
 		
 		# Play for total duration - 1 second	
-		
-		
 		sleep(self.player2.duration() - self.fadeTime)
 		
 		# Fade player
-		self.fade_player_out(self.player2)
+	#	self.fade_player_out(self.player2)
 		self.player2.quit()
 		
 		# Set new current and next index 
@@ -122,6 +122,7 @@ class ScreenController:
 		print(self.nextIndex)
 		
 	def fade_player_out(self, player):
+		print('----fade_player_out START----')
 		alpha = self.upperAlpha 
 		no_of_steps = (self.upperAlpha - self.lowerAlpha)/self.fadeTime
 		fadeSleep = self.fadeTime/no_of_steps
@@ -129,6 +130,7 @@ class ScreenController:
 			sleep(fadeSleep)
 			alpha = alpha - ((self.upperAlpha - self.lowerAlpha)/no_of_steps)
 			player.set_alpha(alpha)
+		print('----fade_player_out END----')
 			
 	def fade_player_in(self, player):
 		alpha = self.lowerAlpha 
