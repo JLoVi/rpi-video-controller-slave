@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import websocket
 import json
+import sys
 from EWSMessageType import EWSMessageType 
 from EWSClientType import EWSClientType
 from screen_controller_class import ScreenController
@@ -17,24 +18,29 @@ rm = RequestManager()
 fm = FileManager()
 sc = ScreenController()
 HOST = "wss://cs70esocmi.execute-api.us-east-1.amazonaws.com/dev"
+pi_id = str(3)
 
-
+if len(sys.argv) > 1:
+    pi_id = str(sys.argv[1])
+    
 def on_message(ws, message):
-	print(message, 5)
-	if message["message"] == EWSMessageType.START_PLAYLIST.name:
-	    print('START_PLAYLIST')
-	elif message["message"] == EWSMessageType.START_AUDIO.name:
-	    print("START_AUDIO")
-	elif message["message"] == EWSMessageType.START_SCHEDULE.name:
-	    print("START_SCHEDULE")
-	elif message["message"] == EWSMessageType.START_STREAM.name:
-	    print("START_STREAM")
-	elif message["message"] == EWSMessageType.START_VIDEO.name:
-	    print("START_VIDEO")
-	elif message["message"] == EWSMessageType.STOP_STREAM.name:
-	    print("STOP_STREAM")
-	else:
-	    print("HELLO")
+    print(message, 5)
+    if message["message"] == EWSMessageType.START_PLAYLIST.name:
+	print('START_PLAYLIST')
+	screen = next((item for item in screens if item["raspberry_pi_id"] == pi_id), None)
+	playlist = screen['video_file_playlist']
+	sc.start_playlist(playlist)
+    elif message["message"] == EWSMessageType.START_STREAM.name:
+	print("START_STREAM")
+	sc.start_stream(message["payload"])
+    elif message["message"] == EWSMessageType.START_VIDEO.name:
+	print("START_VIDEO")
+	sc.play_single_video(message["payload"])
+    elif message["message"] == EWSMessageType.STOP_STREAM.name:
+	print("STOP_STREAM")
+	sc.stop_stream()
+    else:
+	print("NOT VALID")
 
 def on_error(ws, error):
     print(error)
@@ -47,7 +53,7 @@ def on_open(ws):
 	message_object = {
 	    "message": EWSMessageType.INITIALISE.name,
 	    "client_type": EWSClientType.DISPLAY.name,
-	    "raspberry_pi_id": 3
+	    "raspberry_pi_id": pi_id
 	}
 	message_string = json.dumps(message_object)
 	# Make Request for Videos and Screens
@@ -59,10 +65,10 @@ def on_open(ws):
 	fm.set_screens(screens)
 	
 	# Find Screen
-	screen = next((item for item in screens if item["raspberry_pi_id"] == "3"), None)
+	screen = next((item for item in screens if item["raspberry_pi_id"] == pi_id), None)
 	playlist = screen['video_file_playlist']
-	sc.start_playlist(playlist)
-	
+	# sc.start_playlist(playlist)
+	sc.play_single_video("375caf5d-53ef-41ad-8d24-52ae8686620e")
 	# Send Message To Server
         ws.send(message_string)
     thread.start_new_thread(run, ())

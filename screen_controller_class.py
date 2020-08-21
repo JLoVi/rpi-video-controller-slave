@@ -34,7 +34,6 @@ class ScreenController:
 		self.player1.playEvent += lambda _: self.player_log.info(" 1 Play")
 		self.player1.pauseEvent += lambda _: self.player_log.info("1 Pause")
 		self.player1.stopEvent += lambda _: self.player_log.info("1 Stop")
-		print('----setup_player_one END----')
 		
 	def setup_player_two(self):
 		self.player2 = OMXPlayer(self.baseUrl + self.video_playlist[self.nextIndex],  args='--win 0,0,1920,1080 --layer 1', dbus_name='orb.mpris.MediaPlayer2.omxplayer2', pause = True)
@@ -47,23 +46,31 @@ class ScreenController:
 		videos.sort(reverse=False, key=self.sort_videos)
 		for x in videos:
 			self.video_playlist.append(x['id'])
-		print(self.video_playlist)
+
 		self.setup_player_one();
 		self.setup_player_two();
 		self.play_videos(True);
 	
-	def start_stream(self, i):
-		streams = json.load(open('streams.json', 'r'))
-		url = streams[i]
+	def start_stream(self, stream_id):
+		videos = json.load(open('videos.json', 'r'))
+		video = next((item for item in videos if item["id"] == stream_id), None)
+		url = video.uri
 		self.player1 = OMXPlayer(url, args='--win 0,0,1920,1080', dbus_name='orb.mpris.MediaPlayer2.omxplayer1')
 	
 	def stop_stream(self):
 		self.player1.quit()
 	
+	def play_single_video(self, video_id):
+		videos = json.load(open('videos.json', 'r'))
+		video = next((item for item in videos if item["id"] == video_id), None)
+		url = self.baseUrl + video_id
+		self.player1 = OMXPlayer(url, args='--win 0,0,1920,1080', dbus_name='orb.mpris.MediaPlayer2.omxplayer1')
+		print('PLAYING SINGLE VIDEO')
+		print(video)
+	
 	def play_videos(self, init = False):
 		# Load players with appropiate indexes	
-		if init == False: 
-			print ("VIDEO INIT")
+		if init == False:
 			self.player1.load(self.baseUrl + self.video_playlist[self.currentIndex], pause = True)
 			self.player2.load(self.baseUrl + self.video_playlist[self.nextIndex], pause = True)
 	#	else:
