@@ -69,7 +69,12 @@ class ScreenController:
 		# start player 2 with new video fading in
 		# quit player 1
 		# do the same for player 2
-		self.player1 = OMXPlayer(url, args='--win 0,0,1920,1080 --layer 2', dbus_name='orb.mpris.MediaPlayer2.omxplayer1')
+		if self.player1 = None:
+			self.player1 = OMXPlayer(url, args='--win 0,0,1920,1080 --layer 2', dbus_name='orb.mpris.MediaPlayer2.omxplayer1')
+			self.player2 = None
+		else:
+			self.player2 = OMXPlayer(self.baseUrl + self.video_playlist[self.nextIndex],  args='--win 0,0,1920,1080 --layer 1', dbus_name='orb.mpris.MediaPlayer2.omxplayer2', pause = True)
+			self.player1 = None
 		print('PLAYING SINGLE VIDEO')
 	
 	def play_videos(self, init = False):
