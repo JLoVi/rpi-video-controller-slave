@@ -24,7 +24,8 @@ if len(sys.argv) > 1:
     pi_id = str(sys.argv[1])
     
 def on_message(ws, message):
-    print(message, 5)
+    #print('Hi', message)
+    message = json.loads(message)
     if message["message"] == EWSMessageType.START_PLAYLIST.name:
 	print('START_PLAYLIST')
 	screen = next((item for item in screens if item["raspberry_pi_id"] == pi_id), None)
@@ -35,7 +36,17 @@ def on_message(ws, message):
 	sc.start_stream(message["payload"])
     elif message["message"] == EWSMessageType.START_VIDEO.name:
 	print("START_VIDEO")
-	sc.play_single_video(message["payload"])
+	video_id = ""
+	print(message)
+	if message['payload'] == None:
+	    screens = fm.get_screens()
+	    screen = next((item for item in screens if item["raspberry_pi_id"] == pi_id), None)
+	    video_id = screen['video_id']
+	else:
+	    video_id = message['payload']
+	
+	print('screens', video_id)
+	sc.play_single_video(video_id)
     elif message["message"] == EWSMessageType.STOP_STREAM.name:
 	print("STOP_STREAM")
 	sc.stop_stream()
@@ -68,7 +79,7 @@ def on_open(ws):
 	screen = next((item for item in screens if item["raspberry_pi_id"] == pi_id), None)
 	playlist = screen['video_file_playlist']
 	# sc.start_playlist(playlist)
-	sc.play_single_video("375caf5d-53ef-41ad-8d24-52ae8686620e")
+	# sc.play_single_video("375caf5d-53ef-41ad-8d24-52ae8686620e")
 	# Send Message To Server
         ws.send(message_string)
     thread.start_new_thread(run, ())

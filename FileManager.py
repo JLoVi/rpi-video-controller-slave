@@ -21,8 +21,10 @@ class FileManager:
 		
 	def get_videos(self):
 		f = open("videos.json", "r")
-		return f.write()
+		videos = json.loads(f.read())
+		return videos
 
 	def get_screens(self):
 		f = open("screens.json", "r")
-		return f.write()
+		screens = json.loads(f.read())
+		return screens
