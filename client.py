@@ -27,7 +27,6 @@ if len(sys.argv) > 1:
 
 
 def on_message(ws, message):
-    #print('Hi', message)
     message = json.loads(message)
     if message["message"] == EWSMessageType.START_PLAYLIST.name:
         # print('START_PLAYLIST')
@@ -57,6 +56,9 @@ def on_message(ws, message):
         #dc.start_video(video_id)
         #dc.start_stream('11111')
         #sc.play_single_video(video_id)
+    elif message["message"] == EWSMessageType.START_SCHEDULE.name:
+        print("START_SCHEDULE")
+        dc.preload_live_stream_players()
     elif message["message"] == EWSMessageType.STOP_STREAM.name:
         print("STOP_STREAM")
         #sc.stop_stream()

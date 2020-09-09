@@ -26,11 +26,14 @@ class DisplayController:
 	
 	def preload_live_stream_players(self):
 		for stream_player_id in self.live_stream_players:
-			print(stream_player_id)
 			self.start_stream_on_player(stream_player_id)
 			
 	def setup_stream_player(self, player):
-		mpv_player = mpv.MPV(border=False, ontop=True, profile="low-latency", cache="no", untimed="no", rtsp_transport="tcp")
+		mpv_player = mpv.MPV(video_latency_hacks="yes", vd_lavc_threads="1", demuxer_thread="no", osc="no", border=False, fps="60", ontop=False, profile="low-latency", cache="no", untimed="yes", rtsp_transport="tcp", aid="no", input_vo_keyboard=True, brightness="0")
+		@mpv_player.on_key_press('q')
+		def my_q_binding():
+			print('HEY')
+			mpv_player.quit()
 		if player == 1:
 			self.stream_player_1 = mpv_player
 		elif player == 2:
@@ -48,7 +51,7 @@ class DisplayController:
 			self.stream_player_3.play(url)
 			
 	def setup_video_player(self, player):
-		mpv_player = mpv.MPV(border=False, ontop=True)
+		mpv_player = mpv.MPV(border=False, ontop=True, loop_file="no")
 		mpv_player.fullscreen = True
 		if player == 1:
 			self.video_player_1 = mpv_player
