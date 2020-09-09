@@ -38,6 +38,7 @@ def on_message(ws, message):
         #sc.start_playlist(playlist)
     elif message["message"] == EWSMessageType.START_STREAM.name:
         print("START_STREAM")
+        dc.start_stream('11111')
         #sc.start_stream(message["payload"])
     elif message["message"] == EWSMessageType.START_VIDEO.name:
         print("START_VIDEO")
@@ -51,8 +52,10 @@ def on_message(ws, message):
             video_id = screen['video_id']
         else:
             video_id = message['payload']
-            print('screens', video_id)
-        dc.start_video(video_id)
+        
+        dc.preload_live_stream_players()
+        #dc.start_video(video_id)
+        #dc.start_stream('11111')
         #sc.play_single_video(video_id)
     elif message["message"] == EWSMessageType.STOP_STREAM.name:
         print("STOP_STREAM")
@@ -76,7 +79,6 @@ def on_open(ws):
             "client_type": EWSClientType.DISPLAY.name,
             "raspberry_pi_id": pi_id
         }
-        print(message_object)
         message_string = json.dumps(message_object)
         # Make Request for Videos and Screens
         videos = rm.get_videos()
