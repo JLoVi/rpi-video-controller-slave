@@ -19,7 +19,7 @@ rm = RequestManager()
 fm = FileManager()
 #sc = ScreenController()
 dc = DisplayController()
-HOST = "wss://cs70esocmi.execute-api.us-east-1.amazonaws.com/dsudo apt-getev"
+HOST = "wss://cs70esocmi.execute-api.us-east-1.amazonaws.com/dev"
 pi_id = str(3)
 
 if len(sys.argv) > 1:
@@ -38,7 +38,7 @@ def on_message(ws, message):
         #sc.start_playlist(playlist)
     elif message["message"] == EWSMessageType.START_STREAM.name:
         print("START_STREAM")
-        sc.start_stream(message["payload"])
+        #sc.start_stream(message["payload"])
     elif message["message"] == EWSMessageType.START_VIDEO.name:
         print("START_VIDEO")
         video_id = ""
@@ -52,6 +52,7 @@ def on_message(ws, message):
         else:
             video_id = message['payload']
             print('screens', video_id)
+        dc.start_video(video_id)
         #sc.play_single_video(video_id)
     elif message["message"] == EWSMessageType.STOP_STREAM.name:
         print("STOP_STREAM")

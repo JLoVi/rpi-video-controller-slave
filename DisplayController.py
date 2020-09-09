@@ -11,6 +11,7 @@ logging.basicConfig(level=logging.INFO)
 class DisplayController:
 	player1 = None
 	player2 = None
+	baseUrl = "http://10.0.0.111:8080/video/"
 	def __init__(self):
 		print('INIT')
 		
@@ -30,14 +31,18 @@ class DisplayController:
 		
 	def start_video(self, video_id):
 		url = self.baseUrl + video_id
+		print(url)
 		# check if player is already playing
 		# if it is playing then fade out player 1 
 		# start player 2 with new video fading in
 		# quit player 1
 		# do the same for player 2
+		#url = "test.mp4"
 		if self.player1 == None:
-			self.setup_video_player(self.player1)
+			#self.setup_video_player(self.player1)
+			self.player1 = mpv.MPV(border=False, ontop=True)
 			self.player1.play(url)
+			self.player1.wait_for_playback()
 			self.player2 = None
 		else:
 			self.setup_video_player(self.player2)
