@@ -70,6 +70,7 @@ def on_message(ws, message):
     elif message["message"] == EWSMessageType.START_VIDEO.name:
         print("START_VIDEO")
         video_id = ""
+        is_schedule = False
         print(message)
         if message['payload'] is None:
             screens = fm.get_screens()
@@ -77,10 +78,12 @@ def on_message(ws, message):
                 (item for item in screens if item["raspberry_pi_id"] == pi_id),
             None)
             video_id = screen['video_id']
+            is_schedule = False
         else:
             video_id = message['payload']
+            is_schedule = True
         
-        dc.start_video(video_id)
+        dc.start_video(video_id, is_schedule)
     elif message["message"] == EWSMessageType.START_SCHEDULE.name:
         print("START_SCHEDULE")
         schedule_actions = fm.get_schedule()

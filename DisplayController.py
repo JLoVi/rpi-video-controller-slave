@@ -44,26 +44,38 @@ class DisplayController:
 			return False
 	
 	def setup(self):
-		print('CALLED SETUP', self.actions)
 		action = self.actions[self.index]
 		if action['ACTION'] == EWSMessageType.START_VIDEO.name:
-			self.setup_video_player(1)
+			if self.fullscreen_player_index == 1:
+				self.setup_video_player(2)
+			else:
+				self.setup_video_player(1)
 		elif action['ACTION'] == EWSMessageType.START_STREAM.name:
 			print('LOAD STREAM PLAYER')
-			self.load_stream_player(self.main_player_1)
-			self.start_stream_on_player(self.main_player_1, action['PAYLOAD'])
+			if self.fullscreen_player_index == 1:
+				self.load_stream_player(self.main_player_2)
+				self.start_stream_on_player(2, action['PAYLOAD'])
+			else:
+				self.load_stream_player(self.main_player_1)
+				self.start_stream_on_player(1, action['PAYLOAD'])
 	
 	def load_next_action_for_player(self, player):
 		self.increment_index()
 		action = self.actions[self.index]
 		print('load_next_action_for_player', player)
 		if action['ACTION'] == EWSMessageType.START_VIDEO.name:
-			print('LOAD VIDEO PLAYER')
-			self.setup_video_player(player)
+			if self.fullscreen_player_index == 1:
+				self.setup_video_player(2)
+			else:
+				self.setup_video_player(1)
 		elif action['ACTION'] == EWSMessageType.START_STREAM.name:
 			print('LOAD STREAM PLAYER')
-			self.load_stream_player(player)
-			self.start_stream_on_player(player, action['PAYLOAD'])
+			if self.fullscreen_player_index == 1:
+				self.load_stream_player(self.main_player_2)
+				self.start_stream_on_player(2, action['PAYLOAD'])
+			else:
+				self.load_stream_player(self.main_player_1)
+				self.start_stream_on_player(1, action['PAYLOAD'])
 		
 	def increment_index(self):
 		self.index = self.index + 1
@@ -111,49 +123,47 @@ class DisplayController:
 		#self.stream_player_1.play(url)
 		#self.stream_player_1.wait_for_playback()
 		
-	def start_video(self, video_id):
+	def start_video(self, video_id, schedule):
 		url = self.baseUrl + video_id
 		#url = "test.mp4"
-		print('FULLSCREEN', self.fullscreen_player)
-		print('main_player_1', self.main_player_1)
 		if self.fullscreen_player_index == 1:
 			print('MAIN PLAYER IS 1')
 			self.main_player_2.play(url)
 			self.set_fullscreen_player(self.main_player_2, 2)
-			self.load_next_action_for_player(1)
+			if schedule == True:
+				self.load_next_action_for_player(1)
 		elif self.fullscreen_player_index == 2:
 			print('MAIN PLAYER IS 2')
 			self.main_player_1.play(url)
 			self.set_fullscreen_player(self.main_player_1, 1)
-			self.load_next_action_for_player(2)
+			if schedule == True:
+				self.load_next_action_for_player(2)
 		elif self.fullscreen_player == None:
 			print('MAIN PLAYER IS 3')
 			self.main_player_1.play(url)
 			self.set_fullscreen_player(self.main_player_1, 1)
-			self.load_next_action_for_player(2)
+			if schedule == True:
+				self.load_next_action_for_player(2)
 	
 	def set_fullscreen_player(self, player, index):
 		previous_fullscreen_player = self.fullscreen_player
 		self.fullscreen_player = player
 		self.fullscreen_player_index = index
-		self.fullscreen_player.fullscreen = True
+		if index == 1:
+			print('HI')
+			self.main_player_1.fullscreen = True
+		elif index == 2:
+			print('HI')
+			self.main_player_2.fullscreen = True
+
 		if previous_fullscreen_player != None:
-			previous_fullscreen_player.fullscreen = False
+			if index == 1:
+				print('HI')
+				self.main_player_2.fullscreen = False
+			elif index == 2:
+				print('HI')
+				self.main_player_1.fullscreen = False
 		
+
 			
-	def setup_live_stream_players(self):
-		for stream_player_id in self.live_stream_players:
-			self.setup_stream_player(stream_player_id)
-	
-	def preload_live_stream_players(self):
-		for stream_player_id in self.live_stream_players:
-			self.start_stream_on_player(stream_player_id)
-			
-	def setup_stream_player(self, player):
-		mpv_player = mpv.MPV(length="60", autofit="100%x100%", demuxer_thread="no", osc="no", border=False, fps="60", ontop=False, profile="low-latency", cache="no", untimed="yes", rtsp_transport="tcp", aid="no", input_vo_keyboard=True, brightness="0")
-		if player == 1:
-			self.stream_player_1 = mpv_player
-		elif player == 2:
-			self.stream_player_2 = mpv_player
-		elif player == 3:
-			self.stream_player_3 = mpv_player
+
