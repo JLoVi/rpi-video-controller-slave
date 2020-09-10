@@ -4,7 +4,6 @@ import json
 import sys
 from EWSMessageType import EWSMessageType
 from EWSClientType import EWSClientType
-#from screen_controller_class import ScreenController
 from RequestManager import RequestManager
 from FileManager import FileManager
 from DisplayController import DisplayController
@@ -17,7 +16,6 @@ import time
 
 rm = RequestManager()
 fm = FileManager()
-#sc = ScreenController()
 dc = DisplayController()
 HOST = "wss://cs70esocmi.execute-api.us-east-1.amazonaws.com/dev"
 pi_id = str(3)
@@ -29,16 +27,13 @@ if len(sys.argv) > 1:
 def on_message(ws, message):
     message = json.loads(message)
     if message["message"] == EWSMessageType.START_PLAYLIST.name:
-        # print('START_PLAYLIST')
         screen = next(
             (item for item in screens if item["raspberry_pi_id"] == pi_id),
             None)
         playlist = screen['video_file_playlist']
-        #sc.start_playlist(playlist)
     elif message["message"] == EWSMessageType.START_STREAM.name:
         print("START_STREAM")
-        dc.start_stream('11111')
-        #sc.start_stream(message["payload"])
+        dc.start_stream(message['payload'])
     elif message["message"] == EWSMessageType.START_VIDEO.name:
         print("START_VIDEO")
         video_id = ""
@@ -52,12 +47,12 @@ def on_message(ws, message):
         else:
             video_id = message['payload']
         
-        dc.preload_live_stream_players()
-        #dc.start_video(video_id)
-        #dc.start_stream('11111')
-        #sc.play_single_video(video_id)
+        #dc.load_video_players()
+        #dc.preload_live_stream_players()
+        dc.start_video(video_id)
     elif message["message"] == EWSMessageType.START_SCHEDULE.name:
         print("START_SCHEDULE")
+        dc.setup_live_stream_players()
         dc.preload_live_stream_players()
     elif message["message"] == EWSMessageType.STOP_STREAM.name:
         print("STOP_STREAM")
