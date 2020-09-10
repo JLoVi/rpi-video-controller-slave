@@ -47,12 +47,9 @@ def on_message(ws, message):
         else:
             video_id = message['payload']
         
-        #dc.load_video_players()
-        #dc.preload_live_stream_players()
         dc.start_video(video_id)
     elif message["message"] == EWSMessageType.START_SCHEDULE.name:
         print("START_SCHEDULE")
-        dc.setup_live_stream_players()
         dc.preload_live_stream_players()
     elif message["message"] == EWSMessageType.STOP_STREAM.name:
         print("STOP_STREAM")

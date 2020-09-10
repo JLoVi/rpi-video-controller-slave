@@ -22,6 +22,7 @@ class DisplayController:
 	stream_player_3 = None
 	fullscreen_player = None
 	live_stream_players = [1, 2, 3]
+	player_in_user = None
 	baseUrl = "http://10.0.0.111:8080/video/"
 	def __init__(self):
 		self.setup_live_stream_players()
@@ -36,7 +37,7 @@ class DisplayController:
 			self.start_stream_on_player(stream_player_id)
 			
 	def setup_stream_player(self, player):
-		mpv_player = mpv.MPV(length="10", autofit="100%x100%", demuxer_thread="no", osc="no", border=False, fps="60", ontop=False, profile="low-latency", cache="no", untimed="yes", rtsp_transport="tcp", aid="no", input_vo_keyboard=True, brightness="0")
+		mpv_player = mpv.MPV(length="45", autofit="100%x100%", demuxer_thread="no", osc="no", border=False, fps="60", ontop=False, profile="low-latency", cache="no", untimed="yes", rtsp_transport="tcp", aid="no", input_vo_keyboard=True, brightness="0")
 		if player == 1:
 			self.stream_player_1 = mpv_player
 		elif player == 2:
@@ -60,16 +61,12 @@ class DisplayController:
 			self.stream_player_3.play(url)
 			
 	def setup_video_player(self, player):
-		mpv_player = mpv.MPV(border=False, ontop=False, geometry="50%x50%", loop_file="no", length="10")
-		#mpv_player.fullscreen = True
+		mpv_player = mpv.MPV(border=False, ontop=True, geometry="50%x50%", loop_file="no", aid="no")
+		mpv_player.fullscreen = True
 		if player == 1:
 			self.video_player_1 = mpv_player
 		elif player == 2:
 			self.video_player_2 = mpv_player
-		
-	def set_player_one_fullscreen(self):
-		sleep(3)
-		self.video_player_1.fullscreen = True
 			
 	def start_stream(self, stream_id):
 		#videos = json.load(open('videos.json', 'r'))
@@ -77,6 +74,7 @@ class DisplayController:
 		#url = video.uri
 		url = "rtsp://admin:false.memory@192.168.0.254/h264/ch1/main/av_stream"
 		player_id = stream_dict[stream_id]
+		print('PLAYER ID', player_id)
 		self.show_stream_player(player_id)
 		#self.setup_stream_player(1)
 		#self.stream_player_1.play(url)
@@ -92,7 +90,6 @@ class DisplayController:
 		
 	def start_video(self, video_id):
 		url = self.baseUrl + video_id
-		print(url)
 		# check if player is already playing
 		# if it is playing then fade out player 1 
 		# start player 2 with new video fading in
@@ -101,13 +98,11 @@ class DisplayController:
 		#url = "test.mp4"
 		if self.video_player_1 == None:
 			self.setup_video_player(1)
-			#self.player1 = mpv.MPV(border=False, ontop=True)
 			self.video_player_1.play(url)
-			self.video_player_1.wait_for_playback()
 			self.video_player_2 = None
 		else:
 			self.setup_video_player(2)
 			self.video_player_2.play(url)
-			self.video_player_2.wait_for_playback()
+			#self.video_player_2.wait_for_playback()
 			self.video_player_1 = None
 			
