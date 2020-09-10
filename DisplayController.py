@@ -20,9 +20,9 @@ class DisplayController:
 	stream_player_1 = None
 	stream_player_2 = None
 	stream_player_3 = None
+	stream_player = None
 	fullscreen_player = None
 	live_stream_players = [1, 2, 3]
-	player_in_user = None
 	baseUrl = "http://10.0.0.111:8080/video/"
 	def __init__(self):
 		self.setup_live_stream_players()
@@ -37,19 +37,13 @@ class DisplayController:
 			self.start_stream_on_player(stream_player_id)
 			
 	def setup_stream_player(self, player):
-		mpv_player = mpv.MPV(length="45", autofit="100%x100%", demuxer_thread="no", osc="no", border=False, fps="60", ontop=False, profile="low-latency", cache="no", untimed="yes", rtsp_transport="tcp", aid="no", input_vo_keyboard=True, brightness="0")
+		mpv_player = mpv.MPV(length="60", autofit="100%x100%", demuxer_thread="no", osc="no", border=False, fps="60", ontop=False, profile="low-latency", cache="no", untimed="yes", rtsp_transport="tcp", aid="no", input_vo_keyboard=True, brightness="0")
 		if player == 1:
 			self.stream_player_1 = mpv_player
 		elif player == 2:
 			self.stream_player_2 = mpv_player
 		elif player == 3:
 			self.stream_player_3 = mpv_player
-	
-	def load_video_players(self):
-		self.setup_video_player(1)
-		self.setup_video_player(2)
-		self.video_player_1.play('test.mp4')
-		self.video_player_2.play('test.mp4')
 	
 	def start_stream_on_player(self, stream_player_id):
 		url = "rtsp://admin:false.memory@192.168.0.254/h264/ch1/main/av_stream"
@@ -61,8 +55,9 @@ class DisplayController:
 			self.stream_player_3.play(url)
 			
 	def setup_video_player(self, player):
-		mpv_player = mpv.MPV(border=False, ontop=True, geometry="50%x50%", loop_file="no", aid="no")
-		mpv_player.fullscreen = True
+		mpv_player = mpv.MPV(border=False, ontop=True, geometry="100%x100%", loop_file="no", aid="no")
+		self.set_fullscreen_player(mpv_player)
+		#mpv_player.fullscreen = True
 		if player == 1:
 			self.video_player_1 = mpv_player
 		elif player == 2:
@@ -75,18 +70,25 @@ class DisplayController:
 		url = "rtsp://admin:false.memory@192.168.0.254/h264/ch1/main/av_stream"
 		player_id = stream_dict[stream_id]
 		print('PLAYER ID', player_id)
-		self.show_stream_player(player_id)
+		#self.show_stream_player(player_id)
 		#self.setup_stream_player(1)
 		#self.stream_player_1.play(url)
 		#self.stream_player_1.wait_for_playback()
 		
+	def set_fullscreen_player(self, player):
+		previous_fullscreen_player = self.fullscreen_player
+		self.fullscreen_player = player
+		self.fullscreen_player.fullscreen = True
+		if previous_fullscreen_player != None:
+			previous_fullscreen_player.fullscreen = False
+		
 	def show_stream_player(self, stream_player_id):
 		if stream_player_id == 1:
-			self.stream_player_1.fullscreen = True
+			self.set_fullscreen_player(self.stream_player_1)
 		elif stream_player_id == 2:
-			self.stream_player_2.fullscreen = True
+			self.set_fullscreen_player(self.stream_player_2)
 		elif stream_player_id == 3:
-			self.stream_player_3.fullscreen = True
+			self.set_fullscreen_player(self.stream_player_3)
 		
 	def start_video(self, video_id):
 		url = self.baseUrl + video_id
@@ -99,10 +101,14 @@ class DisplayController:
 		if self.video_player_1 == None:
 			self.setup_video_player(1)
 			self.video_player_1.play(url)
-			self.video_player_2 = None
+			if self.video_player_2 != None:
+				self.video_player_2.stop()
+				self.video_player_2 = None
 		else:
 			self.setup_video_player(2)
 			self.video_player_2.play(url)
 			#self.video_player_2.wait_for_playback()
-			self.video_player_1 = None
+			if self.video_player_1 != None:
+				self.video_player_1.stop()
+				self.video_player_1 = None
 			

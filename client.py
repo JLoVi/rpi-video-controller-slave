@@ -47,12 +47,12 @@ def on_message(ws, message):
         else:
             video_id = message['payload']
         
-        dc.start_video(video_id)
+        #dc.start_video(video_id)
     elif message["message"] == EWSMessageType.START_SCHEDULE.name:
         print("START_SCHEDULE")
         dc.preload_live_stream_players()
-    elif message["message"] == EWSMessageType.STOP_STREAM.name:
-        print("STOP_STREAM")
+    elif message["message"] == EWSMessageType.STOP_SCHEDULE.name:
+        print("STOP_SCHEDULE")
         #sc.stop_stream()
     else:
         print("NOT VALID")
@@ -77,6 +77,9 @@ def on_open(ws):
         # Make Request for Videos and Screens
         videos = rm.get_videos()
         screens = rm.get_screens()
+        schedule = rm.get_schedule()
+        print('SCHEDULE', schedule)
+        fm.set_schedule(schedule)
 
         # Store Videos In Json file
         fm.set_videos(videos)

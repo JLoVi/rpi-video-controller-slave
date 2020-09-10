@@ -19,6 +19,13 @@ class FileManager:
 		f.write(screen_string)
 		f.close()
 		
+	def set_schedule(self, schedule):
+		schedule_string = json.dumps(schedule)
+		f = open('schedule.json', 'w')
+		f.write(schedule_string)
+		f.close()
+			
+		
 	def get_videos(self):
 		f = open("videos.json", "r")
 		videos = json.loads(f.read())
@@ -28,3 +35,8 @@ class FileManager:
 		f = open("screens.json", "r")
 		screens = json.loads(f.read())
 		return screens
+		
+	def get_schedule(self):
+		f = open("schedule.json", "r")
+		schedule = json.loads(f.read())
+		return schedule
