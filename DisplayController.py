@@ -98,7 +98,7 @@ class DisplayController:
 			self.main_player_2.play(url)
 			
 	def setup_video_player(self, player):
-		mpv_player = mpv.MPV(border=False, ontop=False, loop_file="no", aid="no")
+		mpv_player = mpv.MPV(border=False, ontop=False, loop_file="yes", aid="no")
 		if player == 1:
 			self.main_player_1 = mpv_player
 		elif player == 2:
