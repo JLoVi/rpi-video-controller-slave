@@ -28,8 +28,6 @@ dc.set_pi_id(pi_id)
 HOST = "wss://cs70esocmi.execute-api.us-east-1.amazonaws.com/dev"
 
 
-
-
 def on_open(ws):
     def run():
         message_object = {
@@ -93,7 +91,7 @@ def on_message(ws, message):
     elif message["message"] == EWSMessageType.STOP_SCHEDULE.name:
         print("STOP_SCHEDULE")
     else:
-        print("NOT VALID")
+        print(message["message"])
 
 
 def on_error(ws, error):

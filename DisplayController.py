@@ -61,27 +61,30 @@ class DisplayController:
 	
 	def load_next_action_for_player(self, player):
 		self.increment_index()
-		action = self.actions[self.index]
-		print('load_next_action_for_player', player)
-		if action['ACTION'] == EWSMessageType.START_VIDEO.name:
-			if self.fullscreen_player_index == 1:
-				self.setup_video_player(2)
-			else:
-				self.setup_video_player(1)
-		elif action['ACTION'] == EWSMessageType.START_STREAM.name:
-			print('LOAD STREAM PLAYER')
-			if self.fullscreen_player_index == 1:
-				self.load_stream_player(self.main_player_2)
-				self.start_stream_on_player(2, action['PAYLOAD'])
-			else:
-				self.load_stream_player(self.main_player_1)
-				self.start_stream_on_player(1, action['PAYLOAD'])
+		if self.index + 1 >= len(self.actions):
+			return
+		else:	
+			action = self.actions[self.index]
+			print('load_next_action_for_player', player)
+			if action['ACTION'] == EWSMessageType.START_VIDEO.name:
+				if self.fullscreen_player_index == 1:
+					self.setup_video_player(2)
+				else:
+					self.setup_video_player(1)
+			elif action['ACTION'] == EWSMessageType.START_STREAM.name:
+				print('LOAD STREAM PLAYER')
+				if self.fullscreen_player_index == 1:
+					self.load_stream_player(self.main_player_2)
+					self.start_stream_on_player(2, action['PAYLOAD'])
+				else:
+					self.load_stream_player(self.main_player_1)
+					self.start_stream_on_player(1, action['PAYLOAD'])
 		
 	def increment_index(self):
 		self.index = self.index + 1
 		
 	def load_stream_player(self, player):
-		mpv_player = mpv.MPV(length="60", autofit="100%x100%", demuxer_thread="no", osc="no", border=False, fps="60", ontop=False, profile="low-latency", cache="no", untimed="yes", rtsp_transport="tcp", aid="no", input_vo_keyboard=True, brightness="0")
+		mpv_player = mpv.MPV( demuxer_thread="no", osc="no", border=False, fps="60", ontop=False, profile="low-latency", cache="no", untimed="yes", rtsp_transport="tcp", aid="no", input_vo_keyboard=True, brightness="0")
 		if player == 1:
 			self.main_player_1 = mpv_player
 		elif player == 2:
@@ -95,7 +98,7 @@ class DisplayController:
 			self.main_player_2.play(url)
 			
 	def setup_video_player(self, player):
-		mpv_player = mpv.MPV(border=False, ontop=True, geometry="100%x100%", loop_file="no", aid="no")
+		mpv_player = mpv.MPV(border=False, ontop=False, loop_file="no", aid="no")
 		if player == 1:
 			self.main_player_1 = mpv_player
 		elif player == 2:
@@ -105,7 +108,7 @@ class DisplayController:
 		#videos = json.load(open('videos.json', 'r'))
 		#video = next((item for item in videos if item["id"] == stream_id), None)
 		#url = video.uri
-		url = "rtsp://admin:false.memory@192.168.0.254/h264/ch1/main/av_stream"
+		url = "rtsp://admin:false.memory@192.168.0.254/h265/ch1/main/av_stream"
 		if self.fullscreen_player_index == 1:
 			self.set_fullscreen_player(self.main_player_2, 2)
 			self.load_next_action_for_player(1)
