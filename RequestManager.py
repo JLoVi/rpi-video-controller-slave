@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import requests
 import json
-from csvmapper import FieldMapper, CSVParser, JSONConverter
 class RequestManager:
 	baseUrl = ""
 	
