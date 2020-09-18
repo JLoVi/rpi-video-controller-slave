@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+import sys
 import socket
 import mpv
 import threading
@@ -19,12 +19,16 @@ stream_dict = {
 	"807ad9e3-2cc8-440f-bd63-3966725a5f9b": 1
 }
 
+rm = RequestManager()
+fm = FileManager()
+
 class DisplayController:
 	fullscreen_player = None
 	fullscreen_player_index = None
 	main_player_1 = None
 	main_player_2 = None
 	pi_id = "3"
+	orientation = "LANDSCAPE"
 	
 	index = 0
 	actions = []
@@ -37,11 +41,9 @@ class DisplayController:
 	
 	def __init__(self):
 		print('INIT')
-		self.make_requests()
+		#self.make_requests()
 
 	def make_requests(self):
-		rm = RequestManager()
-		fm = FileManager()
 		# Make Request for Videos and Screens
 		print('STARTED REQUESTS')
 		videos = rm.get_videos()
@@ -63,10 +65,37 @@ class DisplayController:
 			c, addr = server.accept()
 			data = c.recv(1024)
 			decoded_data = data.decode('utf-8')
-			print("Data", decoded_data)
-			print('Got Connection from', addr)
+			self.respond_to_socket_message(decoded_data)
 			c.close()
 	
+	def respond_to_socket_message(self, message):
+		obj = json.loads(message)
+		if obj['message'] == EWSMessageType.START_VIDEO.name:
+			print('START_VIDEO')
+			video_id = ""
+			is_schedule = False
+			if obj['payload'] is None:
+				screens = fm.get_screens()
+				screen = next(
+					(item for item in screens if item["raspberry_pi_id"] == pi_id),
+				None)
+				video_id = screen['video_id']
+				is_schedule = False
+			else:
+				video_id = obj['payload']
+				is_schedule = True
+			self.start_video(video_id, is_schedule)
+			print('video', video_id)
+			print('is_schedule', is_schedule)
+			
+		elif obj['message'] == EWSMessageType.START_STREAM.name:
+			print('START_STREAM')
+			self.start_stream(obj['payload'])
+			
+		elif obj['message'] == EWSMessageType.START_SCHEDULE.name:
+			print('START_SCHEDULE')
+			self.start_schedule()
+		
 	def start_schedule(self):
 		schedule_actions = fm.get_schedule()
 		self.set_actions(schedule_actions)
@@ -78,6 +107,12 @@ class DisplayController:
 	def set_pi_id(self, pi_id):
 		self.pi_id = pi_id
 	
+	def set_orientation(self, orientation):
+		if orientation == "LANDSCAPE":
+			self.orientation = orientation
+		elif orientation == "PORTRAIT":
+			self.orientation = orientation
+			
 	def filter_actions(self, action):
 		if action['RPI_ID'] == self.pi_id:
 			return True
@@ -92,7 +127,6 @@ class DisplayController:
 			else:
 				self.setup_video_player(1)
 		elif action['ACTION'] == EWSMessageType.START_STREAM.name:
-			print('LOAD STREAM PLAYER')
 			if self.fullscreen_player_index == 1:
 				self.load_stream_player(self.main_player_2)
 				self.start_stream_on_player(2, action['PAYLOAD'])
@@ -125,7 +159,7 @@ class DisplayController:
 		self.index = self.index + 1
 		
 	def load_stream_player(self, player):
-		mpv_player = mpv.MPV( demuxer_thread="no", osc="no", border=False, fps="60", ontop=False, profile="low-latency", cache="no", untimed="yes", rtsp_transport="tcp", aid="no", input_vo_keyboard=True, brightness="0")
+		mpv_player = mpv.MPV(vf="crop=600:1080:500:0", geometry="+960+0", speed="1.1", no_correct_pts="yes", demuxer_thread="no", osc="yes", border=False, fps="60", ontop=False, profile="low-latency", cache="no", untimed="yes", rtsp_transport="tcp", aid="no", input_vo_keyboard=True, brightness="0")
 		if player == 1:
 			self.main_player_1 = mpv_player
 		elif player == 2:
@@ -139,7 +173,7 @@ class DisplayController:
 			self.main_player_2.play(url)
 			
 	def setup_video_player(self, player_id):
-		mpv_player = mpv.MPV(border=False, ontop=False, loop_file="no", aid="no")
+		mpv_player = mpv.MPV(border=False, ontop=False, osc="yes", loop_file="no", aid="no")
 		if player_id == 1:
 			self.main_player_1 = mpv_player
 		elif player_id == 2:
@@ -210,7 +244,16 @@ class DisplayController:
 		
 if __name__ == "__main__":
 	dc = DisplayController()
+	pi_id = str(3)
+	orientation = "LANDSCAPE"
+	if len(sys.argv) > 1:
+		pi_id = str(sys.argv[1])
+		if len(sys.argv) > 2:
+			orientation = sys.argv[2]
 	
+	dc.set_pi_id(pi_id)
+	dc.set_orientation(orientation)
+		
 	x = threading.Thread(target=dc.start_video, args=("4ef1e328-1ce7-4e3a-9979-30ee84f38856", False))
 	y = threading.Thread(target=dc.setup_server, args = ())
 	x.start()
