@@ -25,9 +25,10 @@ class DisplayController:
 	main_player_1 = None
 	main_player_2 = None
 	pi_id = "3"
-	index = 0
 	
+	index = 0
 	actions = []
+	
 	baseUrl = "http://10.0.0.111:8080/video/"
 	
 	server = None
@@ -37,12 +38,12 @@ class DisplayController:
 	def __init__(self):
 		print('INIT')
 		self.make_requests()
-		#self.setup_server()
 
 	def make_requests(self):
 		rm = RequestManager()
 		fm = FileManager()
 		# Make Request for Videos and Screens
+		print('STARTED REQUESTS')
 		videos = rm.get_videos()
 		screens = rm.get_screens()
 		schedule = rm.get_schedule()
@@ -51,6 +52,7 @@ class DisplayController:
 		fm.set_videos(videos)
 		fm.set_screens(screens)
 		fm.set_schedule(schedule)
+		print('ENDED REQUESTS')
 	
 	def setup_server(self):
 		server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -59,13 +61,19 @@ class DisplayController:
 		print('SERVER UP')
 		while True:
 			c, addr = server.accept()
+			data = c.recv(1024)
+			decoded_data = data.decode('utf-8')
+			print("Data", decoded_data)
 			print('Got Connection from', addr)
 			c.close()
 	
+	def start_schedule(self):
+		schedule_actions = fm.get_schedule()
+		self.set_actions(schedule_actions)
+		self.setup()
+		
 	def set_actions(self, schedule_actions):
 		self.actions = list(filter(self.filter_actions, schedule_actions))
-		#for action in self.actions:
-		#	print('ACTION', action)
 		
 	def set_pi_id(self, pi_id):
 		self.pi_id = pi_id
