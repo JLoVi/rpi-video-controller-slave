@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 
+import socket
 import mpv
+import threading
 import json
 from video_file import VideoFile
 from pathlib import Path
 from time import sleep
 import logging
+from RequestManager import RequestManager
+from FileManager import FileManager
 from EWSMessageType import EWSMessageType
 logging.basicConfig(level=logging.INFO)
 
@@ -23,12 +27,41 @@ class DisplayController:
 	pi_id = "3"
 	index = 0
 	
-	live_stream_players = [1, 2, 3]
 	actions = []
 	baseUrl = "http://10.0.0.111:8080/video/"
+	
+	server = None
+	host = '127.0.0.1'
+	port = 1234
+	
 	def __init__(self):
 		print('INIT')
-		
+		self.make_requests()
+		#self.setup_server()
+
+	def make_requests(self):
+		rm = RequestManager()
+		fm = FileManager()
+		# Make Request for Videos and Screens
+		videos = rm.get_videos()
+		screens = rm.get_screens()
+		schedule = rm.get_schedule()
+        
+        # Store Videos In Json file
+		fm.set_videos(videos)
+		fm.set_screens(screens)
+		fm.set_schedule(schedule)
+	
+	def setup_server(self):
+		server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		server.bind((self.host, self.port))
+		server.listen()
+		print('SERVER UP')
+		while True:
+			c, addr = server.accept()
+			print('Got Connection from', addr)
+			c.close()
+	
 	def set_actions(self, schedule_actions):
 		self.actions = list(filter(self.filter_actions, schedule_actions))
 		#for action in self.actions:
@@ -97,11 +130,11 @@ class DisplayController:
 		elif stream_player_id == 2:
 			self.main_player_2.play(url)
 			
-	def setup_video_player(self, player):
-		mpv_player = mpv.MPV(border=False, ontop=False, loop_file="yes", aid="no")
-		if player == 1:
+	def setup_video_player(self, player_id):
+		mpv_player = mpv.MPV(border=False, ontop=False, loop_file="no", aid="no")
+		if player_id == 1:
 			self.main_player_1 = mpv_player
-		elif player == 2:
+		elif player_id == 2:
 			self.main_player_2 = mpv_player
 			
 	def start_stream(self, stream_id):
@@ -128,6 +161,7 @@ class DisplayController:
 		
 	def start_video(self, video_id, schedule):
 		url = self.baseUrl + video_id
+		print(url)
 		#url = "test.mp4"
 		if self.fullscreen_player_index == 1:
 			print('MAIN PLAYER IS 1')
@@ -142,9 +176,12 @@ class DisplayController:
 			if schedule == True:
 				self.load_next_action_for_player(2)
 		elif self.fullscreen_player == None:
-			print('MAIN PLAYER IS 3')
+			print('JUST STARTING PLAYER')
+			self.setup_video_player(1)
 			self.main_player_1.play(url)
+			print('PLAY VIDEO')
 			self.set_fullscreen_player(self.main_player_1, 1)
+			self.main_player_1.wait_for_playback()
 			if schedule == True:
 				self.load_next_action_for_player(2)
 	
@@ -153,20 +190,23 @@ class DisplayController:
 		self.fullscreen_player = player
 		self.fullscreen_player_index = index
 		if index == 1:
-			print('HI')
 			self.main_player_1.fullscreen = True
 		elif index == 2:
-			print('HI')
 			self.main_player_2.fullscreen = True
 
 		if previous_fullscreen_player != None:
 			if index == 1:
-				print('HI')
 				self.main_player_2.fullscreen = False
 			elif index == 2:
-				print('HI')
 				self.main_player_1.fullscreen = False
 		
+if __name__ == "__main__":
+	dc = DisplayController()
+	
+	x = threading.Thread(target=dc.start_video, args=("4ef1e328-1ce7-4e3a-9979-30ee84f38856", False))
+	y = threading.Thread(target=dc.setup_server, args = ())
+	x.start()
+	y.start()
 
 			
 

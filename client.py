@@ -47,7 +47,6 @@ def on_open(ws):
         fm.set_screens(screens)
         fm.set_schedule(schedule)
         
-        
         schedule_actions = fm.get_schedule()
         dc.set_actions(schedule_actions)
         dc.setup()
