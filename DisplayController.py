@@ -39,9 +39,11 @@ class DisplayController:
 	host = '127.0.0.1'
 	port = 1234
 	
+	playlist = []
+	
 	def __init__(self):
 		print('INIT')
-		#self.make_requests()
+		self.make_requests()
 
 	def make_requests(self):
 		# Make Request for Videos and Screens
@@ -49,7 +51,7 @@ class DisplayController:
 		videos = rm.get_videos()
 		screens = rm.get_screens()
 		schedule = rm.get_schedule()
-        
+		print('SCHEDULE', schedule)
         # Store Videos In Json file
 		fm.set_videos(videos)
 		fm.set_screens(screens)
@@ -84,13 +86,13 @@ class DisplayController:
 			else:
 				video_id = obj['payload']
 				is_schedule = True
-			self.start_video(video_id, is_schedule)
-			print('video', video_id)
-			print('is_schedule', is_schedule)
+			#self.start_single_video(video_id, is_schedule)
+			#self.start_video(video_id, is_schedule)
+			self.start_next_video()
 			
 		elif obj['message'] == EWSMessageType.START_STREAM.name:
 			print('START_STREAM')
-			self.start_stream(obj['payload'])
+			#self.start_stream(obj['payload'])
 			
 		elif obj['message'] == EWSMessageType.START_SCHEDULE.name:
 			print('START_SCHEDULE')
@@ -99,10 +101,14 @@ class DisplayController:
 	def start_schedule(self):
 		schedule_actions = fm.get_schedule()
 		self.set_actions(schedule_actions)
-		self.setup()
+		self.setup_playlist()
+		#self.setup()
 		
 	def set_actions(self, schedule_actions):
 		self.actions = list(filter(self.filter_actions, schedule_actions))
+		for action in self.actions:
+			self.playlist.append(self.baseUrl + action['PAYLOAD'])
+		print('PLAYLIST', self.playlist)
 		
 	def set_pi_id(self, pi_id):
 		self.pi_id = pi_id
@@ -173,7 +179,7 @@ class DisplayController:
 			self.main_player_2.play(url)
 			
 	def setup_video_player(self, player_id):
-		mpv_player = mpv.MPV(border=False, ontop=False, osc="yes", loop_file="no", aid="no")
+		mpv_player = mpv.MPV(border=False, ontop=False, osc="yes", loop_file="yes", aid="no")
 		if player_id == 1:
 			self.main_player_1 = mpv_player
 		elif player_id == 2:
@@ -185,10 +191,10 @@ class DisplayController:
 		#url = video.uri
 		url = "rtsp://admin:false.memory@192.168.0.254/h265/ch1/main/av_stream"
 		if self.fullscreen_player_index == 1:
-			self.set_fullscreen_player(self.main_player_2, 2)
+			self.set_fullscreen_player(2)
 			self.load_next_action_for_player(1)
 		elif self.fullscreen_player_index == 2:
-			self.set_fullscreen_player(self.main_player_1, 1)
+			self.set_fullscreen_player(1)
 			self.load_next_action_for_player(2)
 		elif self.fullscreen_player == None:
 			self.video_player_1.play(url)
@@ -200,47 +206,101 @@ class DisplayController:
 		#self.setup_stream_player(1)
 		#self.stream_player_1.play(url)
 		#self.stream_player_1.wait_for_playback()
+	
+	def setup_playlist(self):
+		self.setup_video_player(1)
+		for vid in self.playlist:
+			self.main_player_1.playlist_append(vid)
 		
+		self.main_player_1.playlist_pos = 0
+		self.main_player_1.loop_playlist = 'inf'
+	
+	def start_next_video(self):
+		self.main_player_1.playlist_next()
+	
+	
 	def start_video(self, video_id, schedule):
 		url = self.baseUrl + video_id
 		print(url)
 		#url = "test.mp4"
 		if self.fullscreen_player_index == 1:
-			print('MAIN PLAYER IS 1')
+			print('STARTING PLAYER 2')
+			self.fullscreen_player_index = 2
+			if self.main_player_2 == None:
+				self.setup_video_player(2)
+			
 			self.main_player_2.play(url)
-			self.set_fullscreen_player(self.main_player_2, 2)
-			if schedule == True:
-				self.load_next_action_for_player(1)
+			#self.main_player_2.wait_until_playing()
+			
+			sleep (1)
+			self.set_fullscreen_player(2)
+			if self.main_player_1 != None:
+				self.main_player_1.quit()
+			
+			
+			# LEGACY CODE FOR PRELOADING
+			#if schedule == True:
+			#	self.load_next_action_for_player(1)
 		elif self.fullscreen_player_index == 2:
-			print('MAIN PLAYER IS 2')
+			print('STARTING PLAYER 1')
+			self.fullscreen_player_index = 1
+			#print('MAIN PLAYER IS 2')
+			if self.main_player_1 == None:
+				self.setup_video_player(1)
 			self.main_player_1.play(url)
-			self.set_fullscreen_player(self.main_player_1, 1)
-			if schedule == True:
-				self.load_next_action_for_player(2)
+			#self.main_player_1.wait_until_playing()
+			sleep (1)
+			if self.main_player_2 != None:
+				self.main_player_2.quit()
+			self.set_fullscreen_player(1)
+			# LEGACY CODE FOR PRELOADING
+			#if schedule == True:
+			#	self.load_next_action_for_player(2)
 		elif self.fullscreen_player == None:
 			print('JUST STARTING PLAYER')
 			self.setup_video_player(1)
 			self.main_player_1.play(url)
+			self.main_player_1.wait_until_playing()
 			print('PLAY VIDEO')
-			self.set_fullscreen_player(self.main_player_1, 1)
-			self.main_player_1.wait_for_playback()
-			if schedule == True:
-				self.load_next_action_for_player(2)
-	
-	def set_fullscreen_player(self, player, index):
-		previous_fullscreen_player = self.fullscreen_player
-		self.fullscreen_player = player
+			self.set_fullscreen_player(1)
+			#self.main_player_1.wait_for_playback()
+			
+			# LEGACY CODE FOR PRELOADING
+			#if schedule == True:
+			#	self.load_next_action_for_player(2)
+				
+	def start_single_video(self, video_id, schedule):
+		url = self.baseUrl + video_id
+		print(url)
+		#url = "test.mp4"
+		print('MAIN PLAYER IS 1')
+		if self.main_player_1 == None:
+			self.setup_video_player(1)
+		
+		self.main_player_1.play(url)
+		#self.set_fullscreen_player(self.main_player_1, 1)
+
+	def set_fullscreen_player(self, index):
+		previous_fullscreen_player_index = self.fullscreen_player_index
 		self.fullscreen_player_index = index
 		if index == 1:
-			self.main_player_1.fullscreen = True
+			#self.main_player_1.fullscreen = True
+			if self.main_player_2 != None:
+				print('TERMINATE PLAYER TWO')
+				#self.main_player_2.terminate()
 		elif index == 2:
-			self.main_player_2.fullscreen = True
-
-		if previous_fullscreen_player != None:
+			#self.main_player_2.fullscreen = True
+			if self.main_player_1 != None:
+				print('TERMINATE PLAYER ONE')
+				#self.main_player_1.terminate()
+		
+		if previous_fullscreen_player_index != None:
 			if index == 1:
-				self.main_player_2.fullscreen = False
+				print('PLAYER 2 FULLSCREEN OFF')
+				#self.main_player_2.fullscreen = False
 			elif index == 2:
-				self.main_player_1.fullscreen = False
+				print('PLAYER 1 FULLSCREEN OFF')
+				#self.main_player_1.fullscreen = False
 		
 if __name__ == "__main__":
 	dc = DisplayController()
@@ -256,7 +316,7 @@ if __name__ == "__main__":
 		
 	x = threading.Thread(target=dc.start_video, args=("4ef1e328-1ce7-4e3a-9979-30ee84f38856", False))
 	y = threading.Thread(target=dc.setup_server, args = ())
-	x.start()
+	#x.start()
 	y.start()
 
 			

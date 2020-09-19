@@ -63,18 +63,10 @@ def on_message(ws, message_string):
         
     elif message["message"] == EWSMessageType.START_STREAM.name:
         print("START_STREAM")
-        send_to_display_controller(message_string)
+        #send_to_display_controller(message_string)
         
     elif message["message"] == EWSMessageType.START_VIDEO.name:
-        print("START_VIDEO")
-        xy = json.dumps({
-            'message': 'START_SCHEDULE'
-        })
-        
-        time.sleep(4)
-        send_to_display_controller(xy)
-        time.sleep(2)
-        
+        print("START_VIDEO")        
         send_to_display_controller(message_string)
         
     elif message["message"] == EWSMessageType.START_SCHEDULE.name:
