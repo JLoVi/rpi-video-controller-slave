@@ -8,7 +8,6 @@ from EWSMessageType import EWSMessageType
 from EWSClientType import EWSClientType
 from RequestManager import RequestManager
 from FileManager import FileManager
-from DisplayController import DisplayController
 
 try:
     import thread

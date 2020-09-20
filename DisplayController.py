@@ -13,11 +13,6 @@ from FileManager import FileManager
 from EWSMessageType import EWSMessageType
 logging.basicConfig(level=logging.INFO)
 
-stream_dict = {
-	"569ad6dd-9c38-4a3b-955e-ce6ef935f31b": 3,
-	"c4899b9f-1ddb-4929-b5b8-37c0f8fbee88": 2,
-	"807ad9e3-2cc8-440f-bd63-3966725a5f9b": 1
-}
 
 rm = RequestManager()
 fm = FileManager()
