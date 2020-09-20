@@ -40,6 +40,7 @@ class DisplayController:
 	port = 1234
 	
 	playlist = []
+	playlist_index = 0
 	
 	def __init__(self):
 		print('INIT')
@@ -47,16 +48,13 @@ class DisplayController:
 
 	def make_requests(self):
 		# Make Request for Videos and Screens
-		print('STARTED REQUESTS')
 		videos = rm.get_videos()
 		screens = rm.get_screens()
 		schedule = rm.get_schedule()
-		print('SCHEDULE', schedule)
         # Store Videos In Json file
 		fm.set_videos(videos)
 		fm.set_screens(screens)
 		fm.set_schedule(schedule)
-		print('ENDED REQUESTS')
 	
 	def setup_server(self):
 		server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -101,11 +99,12 @@ class DisplayController:
 	def start_schedule(self):
 		schedule_actions = fm.get_schedule()
 		self.set_actions(schedule_actions)
-		self.setup_playlist()
+		#self.setup_playlist()
 		#self.setup()
 		
 	def set_actions(self, schedule_actions):
 		self.actions = list(filter(self.filter_actions, schedule_actions))
+
 		for action in self.actions:
 			self.playlist.append(self.baseUrl + action['PAYLOAD'])
 		print('PLAYLIST', self.playlist)
@@ -208,16 +207,21 @@ class DisplayController:
 		#self.stream_player_1.wait_for_playback()
 	
 	def setup_playlist(self):
+			
 		self.setup_video_player(1)
+		
 		for vid in self.playlist:
 			self.main_player_1.playlist_append(vid)
 		
 		self.main_player_1.playlist_pos = 0
-		self.main_player_1.loop_playlist = 'inf'
 	
 	def start_next_video(self):
-		self.main_player_1.playlist_next()
-	
+		if self.playlist_index == 0:
+			self.setup_playlist()
+		else:
+			self.main_player_1.playlist_next()
+			
+		self.playlist_index = self.playlist_index + 1
 	
 	def start_video(self, video_id, schedule):
 		url = self.baseUrl + video_id
