@@ -86,7 +86,10 @@ class DisplayController:
 				is_schedule = True
 			#self.start_single_video(video_id, is_schedule)
 			#self.start_video(video_id, is_schedule)
-			self.start_next_video()
+			if is_schedule == True:	
+				self.start_next_video()
+			else:
+				print('START VIDEO')
 			
 		elif obj['message'] == EWSMessageType.START_STREAM.name:
 			print('START_STREAM')
@@ -95,6 +98,19 @@ class DisplayController:
 		elif obj['message'] == EWSMessageType.START_SCHEDULE.name:
 			print('START_SCHEDULE')
 			self.start_schedule()
+		
+		elif obj['message'] == EWSMessageType.STOP_SCHEDULE.name:
+			print('STOP_SCHEDULE')
+			self.stop_schedule()
+			
+	def stop_schedule(self):
+		screens = fm.get_screens()
+		screen = next(
+			(item for item in screens if item["raspberry_pi_id"] == pi_id),
+		None)
+		video_id = screen['video_id']
+		is_schedule = False
+		self.start_single_video("4ef1e328-1ce7-4e3a-9979-30ee84f38856", is_schedule)
 		
 	def start_schedule(self):
 		schedule_actions = fm.get_schedule()
@@ -207,14 +223,20 @@ class DisplayController:
 		#self.stream_player_1.wait_for_playback()
 	
 	def setup_playlist(self):
-			
-		self.setup_video_player(1)
+		if self.main_player_1 == None:	
+			self.setup_video_player(1)
 		
 		for vid in self.playlist:
 			self.main_player_1.playlist_append(vid)
 		
 		self.main_player_1.playlist_pos = 0
 	
+	def clear_playlist(self):
+		self.playlist = []
+		self.playlist_index = 0
+		self.main_player_1.playlist_clear()
+		
+		
 	def start_next_video(self):
 		if self.playlist_index == 0:
 			self.setup_playlist()
@@ -275,7 +297,6 @@ class DisplayController:
 				
 	def start_single_video(self, video_id, schedule):
 		url = self.baseUrl + video_id
-		print(url)
 		#url = "test.mp4"
 		print('MAIN PLAYER IS 1')
 		if self.main_player_1 == None:
@@ -318,9 +339,9 @@ if __name__ == "__main__":
 	dc.set_pi_id(pi_id)
 	dc.set_orientation(orientation)
 		
-	x = threading.Thread(target=dc.start_video, args=("4ef1e328-1ce7-4e3a-9979-30ee84f38856", False))
+	x = threading.Thread(target=dc.start_single_video, args=("5efab20a-2112-4f59-967e-d0ef442c74a1", False))
 	y = threading.Thread(target=dc.setup_server, args = ())
-	#x.start()
+	x.start()
 	y.start()
 
 			

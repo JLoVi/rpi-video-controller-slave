@@ -75,6 +75,7 @@ def on_message(ws, message_string):
         
     elif message["message"] == EWSMessageType.STOP_SCHEDULE.name:
         print("STOP_SCHEDULE")
+        send_to_display_controller(message_string)
         
     else:
         print(message["message"])
