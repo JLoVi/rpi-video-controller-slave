@@ -26,7 +26,7 @@ class PlaybackController:
 	
 	## Socket Server
 	server = None
-	host = '127.0.0.1'
+	host = '10.0.0.10'
 	port = 1234
 	
 	## Playlists
@@ -60,7 +60,8 @@ class PlaybackController:
 			c.close()
 	
 	def setup_video_player(self):
-		self.main_player = mpv.MPV(border=False, ontop=False, osc="yes", loop_file="yes", aid="no")
+		self.main_player = mpv.MPV(border=False, ontop=True, osc="yes", loop_file="yes", aid="no")
+		self.main_player.fullscreen = True
 
 	def set_actions(self, schedule_actions):
 		self.actions = list(filter(self.filter_actions, schedule_actions))
@@ -70,6 +71,11 @@ class PlaybackController:
 		
 	def set_pi_id(self, pi_id):
 		self.pi_id = pi_id
+		host_num = int(pi_id) * 10
+		self.host = '10.0.0.' + str(host_num)
+		
+	def set_host(self, host):
+		self.host = host
 	
 	def set_orientation(self, orientation):
 		if orientation == "LANDSCAPE":
@@ -91,6 +97,7 @@ class PlaybackController:
 			print('START_VIDEO')
 			video_id = ""
 			is_schedule = False
+			print('OBJECT', obj)
 			if obj['payload'] is None:
 				screens = fm.get_screens()
 				screen = next(
@@ -126,32 +133,38 @@ class PlaybackController:
 		None)
 		video_id = screen['video_id']
 		is_schedule = False
-		self.start_single_video("4ef1e328-1ce7-4e3a-9979-30ee84f38856", is_schedule)
+		print('BEFORE CLEAR PLAYLIST')
+		self.clear_playlist()
+		print('AFTER CLEAR PLAYLIST')
+		self.start_single_video(video_id, is_schedule)
 
 	def setup_playlist(self):
 		if self.main_player == None:	
 			self.setup_video_player()
-		
+			
 		for vid in self.playlist:
 			self.main_player.playlist_append(vid)
 		
 		self.main_player.playlist_pos = 0
+		
 	
 	def clear_playlist(self):
-		self.playlist = []
 		self.playlist_index = 0
 		self.main_player.playlist_clear()
 		
 		
 	def start_scheduled_video(self):
+		print('start_scheduled_video', self.playlist_index)
 		if self.playlist_index == 0:
 			self.setup_playlist()
-		else:
-			self.main_player.playlist_next()
-			
+		
+		
 		self.playlist_index = self.playlist_index + 1
+		self.main_player.playlist_next()
+			
 		
 	def start_single_video(self, video_id, schedule):
+		print('start_single_video')
 		url = self.baseUrl + video_id
 		print('MAIN PLAYER IS 1')
 		if self.main_player == None:
@@ -171,8 +184,20 @@ if __name__ == "__main__":
 	
 	playback_controller.set_pi_id(pi_id)
 	playback_controller.set_orientation(orientation)
-		
-	x = threading.Thread(target=playback_controller.start_single_video, args=("5efab20a-2112-4f59-967e-d0ef442c74a1", False))
+	
+	screens = fm.get_screens();
+	screen = next(
+		(item for item in screens if item["raspberry_pi_id"] == pi_id),
+	None)
+	
+	video_id = "5efab20a-2112-4f59-967e-d0ef442c74a1"
+	
+	if(screen != None):
+		video_id = screen['video_id']
+	
+	
+	
+	x = threading.Thread(target=playback_controller.start_single_video, args=(video_id, False))
 	y = threading.Thread(target=playback_controller.setup_server, args = ())
 	x.start()
 	y.start()
