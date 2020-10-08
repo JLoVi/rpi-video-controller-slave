@@ -158,9 +158,9 @@ class PlaybackController:
 		if self.playlist_index == 0:
 			self.setup_playlist()
 		
-		
-		self.playlist_index = self.playlist_index + 1
-		self.main_player.playlist_next()
+		if self.playlist_index + 1 < len(self.playlist):
+			self.playlist_index = self.playlist_index + 1
+			self.main_player.playlist_next()
 			
 		
 	def start_single_video(self, video_id, schedule):
