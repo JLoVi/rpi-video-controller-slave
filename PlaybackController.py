@@ -60,7 +60,7 @@ class PlaybackController:
 			c.close()
 	
 	def setup_video_player(self):
-		self.main_player = mpv.MPV(border=False, ontop=True, osc="yes", loop_file="yes", aid="no")
+		self.main_player = mpv.MPV(border=False, ontop=True, osc="yes", loop_file="yes", aid="no", cache="yes", keep_open="always")
 		self.main_player.fullscreen = True
 
 	def set_actions(self, schedule_actions):
@@ -145,7 +145,10 @@ class PlaybackController:
 		for vid in self.playlist:
 			self.main_player.playlist_append(vid)
 		
+		self.main_player.loop_file = "no"
 		self.main_player.playlist_pos = 0
+		self.main_player.loop_playlist = "yes"
+		self.main_player.prefetch_playlist = "yes"
 		
 	
 	def clear_playlist(self):
@@ -154,13 +157,13 @@ class PlaybackController:
 		
 		
 	def start_scheduled_video(self):
-		print('start_scheduled_video', self.playlist_index)
 		if self.playlist_index == 0:
 			self.setup_playlist()
 		
 		if self.playlist_index + 1 < len(self.playlist):
 			self.playlist_index = self.playlist_index + 1
 			self.main_player.playlist_next()
+
 			
 		
 	def start_single_video(self, video_id, schedule):
@@ -170,6 +173,7 @@ class PlaybackController:
 		if self.main_player == None:
 			self.setup_video_player()
 		
+		self.main_player.loop_file = "yes"
 		self.main_player.play(url)
 
 
