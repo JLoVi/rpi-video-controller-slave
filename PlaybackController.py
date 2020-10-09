@@ -147,7 +147,8 @@ class PlaybackController:
 		
 		self.main_player.loop_file = "no"
 		self.main_player.playlist_pos = 0
-		self.main_player.loop_playlist = "yes"
+		#self.main_player.loop_playlist = "yes"
+		self.main_player.keep_open_pause = "no"
 		self.main_player.prefetch_playlist = "yes"
 		
 	
