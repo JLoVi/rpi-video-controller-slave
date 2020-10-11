@@ -60,7 +60,7 @@ class PlaybackController:
 			c.close()
 	
 	def setup_video_player(self):
-		self.main_player = mpv.MPV(border=False, ontop=True, osc="yes", loop_file="yes", aid="no", cache="yes", no_correct_pts=True, fps="25", keep_open="always")
+		self.main_player = mpv.MPV(border=False, ontop=True, osc="yes", loop_file="yes", aid="no", cache="yes", correct_pts=False, fps="25", keep_open="always")
 		self.main_player.fullscreen = True
 
 	def set_actions(self, schedule_actions):
