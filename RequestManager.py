@@ -13,9 +13,9 @@ class RequestManager:
 		return videos['data']
 
 	def get_screens(self):
-		screen_string = requests.get(self.baseUrl + 'screens').text
+		screen_string = requests.get('http://10.0.0.111:8080/' + 'screens').text
 		screens =json.loads(screen_string)
-		return screens['data']
+		return screens
 	
 	def get_schedule(self):
 		schedule_string = requests.get('http://10.0.0.111:8080/schedule').text
