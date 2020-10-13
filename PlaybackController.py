@@ -144,6 +144,7 @@ class PlaybackController:
 		for vid in self.playlist:
 			self.main_player.playlist_append(vid)
 		
+		print('PLAYLIST', self.playlist)
 		self.main_player.loop_file = "no"
 		self.main_player.playlist_pos = 0
 		#self.main_player.loop_playlist = "yes"
@@ -160,7 +161,7 @@ class PlaybackController:
 		if self.playlist_index == 0:
 			self.setup_playlist()
 		
-		if self.playlist_index + 1 < len(self.playlist):
+		if self.playlist_index + 1 <= len(self.playlist):
 			self.playlist_index = self.playlist_index + 1
 			self.main_player.playlist_next()
 
