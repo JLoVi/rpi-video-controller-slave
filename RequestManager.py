@@ -8,9 +8,9 @@ class RequestManager:
 		self.baseUrl = "https://v2lu4dcv0l.execute-api.us-east-1.amazonaws.com/dev/"
 		
 	def get_videos(self):
-		video_string = requests.get(self.baseUrl + 'videos').text
+		video_string = requests.get('http://10.0.0.111:8080/' + 'videos').text
 		videos =json.loads(video_string)
-		return videos['data']
+		return videos
 
 	def get_screens(self):
 		screen_string = requests.get('http://10.0.0.111:8080/' + 'screens').text

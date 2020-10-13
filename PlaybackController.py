@@ -22,7 +22,7 @@ class PlaybackController:
 	index = 0
 	actions = []
 	
-	baseUrl = "http://10.0.0.111:8080/video/"
+	baseUrl = "assets/"
 	
 	## Socket Server
 	server = None
@@ -67,7 +67,7 @@ class PlaybackController:
 		self.actions = list(filter(self.filter_actions, schedule_actions))
 
 		for action in self.actions:
-			self.playlist.append(self.baseUrl + action['PAYLOAD'])
+			self.playlist.append(self.baseUrl + action['PAYLOAD'] + '.mp4')
 		
 	def set_pi_id(self, pi_id):
 		self.pi_id = pi_id
@@ -88,9 +88,8 @@ class PlaybackController:
 			return True
 		else:
 			return False
-			
-
-			
+					
+					
 	def respond_to_socket_message(self, message):
 		obj = json.loads(message)
 		if obj['message'] == EWSMessageType.START_VIDEO.name:
@@ -169,7 +168,8 @@ class PlaybackController:
 		
 	def start_single_video(self, video_id, schedule):
 		print('start_single_video')
-		url = self.baseUrl + video_id
+		#url = self.baseUrl + video_id
+		url = self.baseUrl + video_id + '.mp4'
 		print('MAIN PLAYER IS 1')
 		if self.main_player == None:
 			self.setup_video_player()
