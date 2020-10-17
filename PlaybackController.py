@@ -62,6 +62,7 @@ class PlaybackController:
 	def setup_video_player(self):
 		self.main_player = mpv.MPV(border=False, ontop=True, osc="yes", loop_file="yes", aid="no", cache="yes", correct_pts=False, fps="25", keep_open="always", demuxer_readahead_secs="20")
 		self.main_player.fullscreen = True
+		print('VIDEO PLAYER SET')
 
 	def set_actions(self, schedule_actions):
 		self.actions = list(filter(self.filter_actions, schedule_actions))
@@ -144,7 +145,6 @@ class PlaybackController:
 		for vid in self.playlist:
 			self.main_player.playlist_append(vid)
 		
-		print('PLAYLIST', self.playlist)
 		self.main_player.loop_file = "no"
 		self.main_player.playlist_pos = 0
 		#self.main_player.loop_playlist = "yes"
@@ -171,12 +171,13 @@ class PlaybackController:
 		print('start_single_video')
 		#url = self.baseUrl + video_id
 		url = self.baseUrl + video_id + '.mp4'
-		print('MAIN PLAYER IS 1')
 		if self.main_player == None:
 			self.setup_video_player()
 		
 		self.main_player.loop_file = "yes"
 		self.main_player.play(url)
+		print('PLAY STARTED', url)
+		self.main_player.wait_for_playback()
 
 
 if __name__ == "__main__":
@@ -205,5 +206,8 @@ if __name__ == "__main__":
 	
 	x = threading.Thread(target=playback_controller.start_single_video, args=(video_id, False))
 	y = threading.Thread(target=playback_controller.setup_server, args = ())
+	#playback_controller.start_single_video(video_id, False)
+	#playback_controller.setup_server()
+	
 	x.start()
 	y.start()
