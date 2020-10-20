@@ -12,5 +12,5 @@ cd /
 cd /home/pi/Projects/rpi-video-controller-slave
 #python3 PlaybackController.py 4
 #sudo XDG_RUNTIME_DIR="/run/user/1000"
-sudo -E python3 PlaybackController.py $1 &  #a commnad to run the script
+python3 PlaybackController.py $1 &  #a commnad to run the script
 
