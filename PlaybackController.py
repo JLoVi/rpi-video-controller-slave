@@ -18,6 +18,7 @@ class PlaybackController:
 	## Display details
 	pi_id = "3"
 	orientation = "LANDSCAPE"
+	small_screen = 0
 	
 	index = 0
 	actions = []
@@ -83,6 +84,9 @@ class PlaybackController:
 			self.orientation = orientation
 		elif orientation == "PORTRAIT":
 			self.orientation = orientation
+		
+	def set_small_screen(self, is_small_screen):
+		self.small_screen = is_small_screen
 			
 	def filter_actions(self, action):
 		if action['RPI_ID'] == self.pi_id:
@@ -184,13 +188,16 @@ if __name__ == "__main__":
 	playback_controller = PlaybackController()
 	pi_id = str(3)
 	orientation = "LANDSCAPE"
+	is_small_screen = 0
+	
 	if len(sys.argv) > 1:
 		pi_id = str(sys.argv[1])
 		if len(sys.argv) > 2:
-			orientation = sys.argv[2]
+			is_small_screen = sys.argv[2]
 	
 	playback_controller.set_pi_id(pi_id)
 	playback_controller.set_orientation(orientation)
+	playback_controller.set_small_screen(is_small_screen)
 	
 	screens = fm.get_screens();
 	screen = next(
@@ -203,11 +210,11 @@ if __name__ == "__main__":
 		video_id = screen['video_id']
 	
 	
-	
 	x = threading.Thread(target=playback_controller.start_single_video, args=(video_id, False))
 	y = threading.Thread(target=playback_controller.setup_server, args = ())
 	#playback_controller.start_single_video(video_id, False)
 	#playback_controller.setup_server()
 	
 	x.start()
-	y.start()
+	if is_small_screen == 0:	
+		y.start()
